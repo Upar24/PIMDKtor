@@ -3,7 +3,6 @@ package com.upar.routes
 import com.upar.data.collections.User
 import com.upar.data.database.*
 import com.upar.data.requests.AccountRequest
-import com.upar.data.requests.ListStringRequest
 import com.upar.data.requests.OneRequest
 import com.upar.data.requests.UpdateUserRequest
 import com.upar.data.responses.SimpleResponse
@@ -20,7 +19,7 @@ fun Route.userRoute(){
     route("/register"){
         post {
             val request= try{
-                call.receive<AccountRequest>()
+                call.receive<User>()
             }catch (e: ContentTransformationException){
                 call.respond(BadRequest)
                 return@post
@@ -35,7 +34,13 @@ fun Route.userRoute(){
             }
             val userExists= checkIfUserExists(request.username)
             if(!userExists){
-                if(registerUser(User(request.username, getHashWithSalt(request.password)))){
+                if(registerUser(
+                        User(
+                            username = request.username,
+                            password = getHashWithSalt(request.password),
+                            ign = request.ign,
+                            clubName = request.clubName
+                        ))){
                     call.respond(OK,SimpleResponse(true,"Successfully created account"))
                 }else{
                     call.respond(OK,SimpleResponse(false,"An unknown error occured"))
@@ -73,18 +78,6 @@ fun Route.userRoute(){
             call.respond(OK,user)
         }
     }
-    route("/getlistuser"){
-        post {
-            val request=try{
-                call.receive<ListStringRequest>()
-            }catch (e:ContentTransformationException) {
-                call.respond(OK, SimpleResponse(false, "cant get the user data"))
-                return@post
-            }
-            val userList= getListUser(request.listString)
-            call.respond(OK,userList)
-        }
-    }
     route("/updateuser"){
         authenticate {
             post {
@@ -101,45 +94,6 @@ fun Route.userRoute(){
                 else
                     call.respond(OK,SimpleResponse(false,"can not update the profile"))
             }
-        }
-    }
-//    route("/updatepassword"){
-//        authenticate {
-//            post {
-//                val username= call.principal<UserIdPrincipal>()!!.name
-//                val request=try {
-//                    call.receive<OneRequest>()
-//                }catch (e:ContentTransformationException){
-//                    call.respond(OK,SimpleResponse(false,"cant send the update user data"))
-//                    return@post
-//                }
-//                val update= updatePassword(username,request.property)
-//                if(update)call.respond(OK) else call.respond(BadRequest)
-//            }
-//        }
-//    }
-    route("/getlistuserclub"){
-        post {
-            val request= try {
-                call.receive<OneRequest>()
-            }catch (e:ContentTransformationException){
-                call.respond(OK)
-                return@post
-            }
-            val result = getListUserClub(request.property)
-            call.respond(OK,result)
-        }
-    }
-    route("/getlistuserign"){
-        post {
-            val request= try {
-                call.receive<OneRequest>()
-            }catch (e:ContentTransformationException){
-                call.respond(OK)
-                return@post
-            }
-            val result = getListUserIGN(request.property)
-            call.respond(OK,result)
         }
     }
 }

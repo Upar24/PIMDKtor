@@ -26,7 +26,6 @@ fun Application.module() {
         userRoute()
         chatRoute()
         tradingRoute()
-        partyRoute()
     }
 
 }
